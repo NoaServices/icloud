@@ -50,9 +50,7 @@ const auth = module.exports = {}
 
 
 module.exports.login = function(serviceName, apple_id, password) {
-    return new Promise( (resolve, reject) => {
-        console.log("Starting auth");
-        
+    return new Promise( (resolve, reject) => {        
         // store various request meta credentials 
         const session = { 
             params : {
@@ -67,7 +65,7 @@ module.exports.login = function(serviceName, apple_id, password) {
 
         // validate before login
         refresh_validate(session, function(err, results) {
-            if (err) return cb(err);
+            if (err) return reject(err);
 
             // craft data for login request
             var data = _.clone(session.user);
@@ -90,7 +88,6 @@ module.exports.login = function(serviceName, apple_id, password) {
                 refresh_validate(session, (err, res) => {
                     if(err) reject(err);
                     else {
-                        console.log("Auth success");
                         resolve({
                             authCookie,
                             serviceUrl,
