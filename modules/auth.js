@@ -1,6 +1,5 @@
 const request = require('request');
 const _ = require('lodash');
-
 const dataManager = require("./dataManager");
 
 // configuration
@@ -12,8 +11,6 @@ var conf = {
     login : setup + "/login",
     validate : setup + "/validate",
 }
-
-let authCookie = []
 
 // default request object
 var req = request.defaults({ 
@@ -27,19 +24,13 @@ var req = request.defaults({
     json : true
 });
 
-// store various request meta credentials 
-var session = { params : {
-    clientBuildNumber : '14FPlus30',
-    clientId : dataManager.generateUuid()
-} };
-
 /*
 Queries the /validate endpoint and fetches two key values we need:
 1. "dsInfo" is a nested object which contains the "dsid" integer.
     This object doesn't exist until *after* the login has taken place,
     the first request will complain about a X-APPLE-WEBAUTH-TOKEN cookie
 */
-function refresh_validate(cb) {
+function refresh_validate(session, cb) {
 
     // make the request via the session params
     req.get({ 
@@ -58,16 +49,24 @@ function refresh_validate(cb) {
 const auth = module.exports = {}
 
 
-module.exports.login = function(apple_id, password) {
+module.exports.login = function(serviceName, apple_id, password) {
     return new Promise( (resolve, reject) => {
-        // store the user info
-        session.user = { 
-            apple_id : apple_id,
-            password : password
-        }
+        console.log("Starting auth");
+        
+        // store various request meta credentials 
+        const session = { 
+            params : {
+                clientBuildNumber : '14FPlus30',
+                clientId : dataManager.generateUuid()
+            },
+            user : {
+                apple_id : apple_id,
+                password : password
+            }
+        };
 
         // validate before login
-        refresh_validate(function(err, results) {
+        refresh_validate(session, function(err, results) {
             if (err) return cb(err);
 
             // craft data for login request
@@ -83,29 +82,23 @@ module.exports.login = function(apple_id, password) {
             }, function(err, resp, data) {
                 if (err || data.error) 
                     return reject("Invalid email/password combination.");
-                
-                // store the results
-                session.discovery = data;
-                session.webservices = data.webservices;
 
-                authCookie = resp.headers['set-cookie'];
+                const authCookie = resp.headers['set-cookie'].join('; ');
+                const serviceUrl = data.webservices[serviceName].url.split('//')[1].split(':')[0];
 
                 // refresh after login
-                refresh_validate((err, res) => {
+                refresh_validate(session, (err, res) => {
                     if(err) reject(err);
-                    else resolve(res);
+                    else {
+                        console.log("Auth success");
+                        resolve({
+                            authCookie,
+                            serviceUrl,
+                            session
+                        });
+                    }
                 });
             });
         });
-    })        
-}
-
-module.exports.session = session;
-
-module.exports.getCookie = function() {
-    return authCookie.join("; ");
-}
-
-module.exports.getServiceUrl = function(serviceName) {
-    return auth.session.webservices[serviceName].url.split('//')[1].split(':')[0];
-}
+    });
+};

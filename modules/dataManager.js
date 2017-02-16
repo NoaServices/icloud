@@ -26,7 +26,7 @@ module.exports.createDummyReqObj = function(data) {
             recurrenceMaster: false,
             startDate: data.startDate,
             title: data.title,
-            tz: "US/Pacific"
+            tz: data.timezone || "UTC"
         }
     };
 

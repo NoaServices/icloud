@@ -1,30 +1,34 @@
 const req = require('request');
+const _ = require('lodash');
 
 const auth = require('./auth');
-const session = auth.session;
 
 /**
  *  Function to fetch contacts
  */ 
-module.exports.get = function() {
+module.exports.get = function(data) {
     return new Promise( (resolve, reject) => {
-        var params = _.extend({}, session.params, {
-            clientVersion: "5.1",
-            locale: "en_US",
-            order: "last,first"
-        });
+        auth.login('contacts', data.login, data.password)
+            .then(response => {
+                const params = _.extend({}, response.session.params, {
+                    clientVersion: "5.1",
+                    locale: "en_US",
+                    order: "last,first"
+                });
 
-        var url = auth.getServiceUrl('contacts');
-
-        req.get({
-            url: url + "/co/startup",
-            qs: params,
-            headers: {
-                host: url,
-            }
-        }, function(err, resp, body) {
-            if (err) return cb(err);
-            cb(null, body);
-        });
+                req.get({
+                    url: `https://${response.serviceUrl}/co/startup`,
+                    qs: params,
+                    headers: {
+                        host: response.serviceUrl,
+                        Cookie: response.authCookie,
+                        Origin: "https://www.icloud.com"
+                    }
+                }, function(err, resp, body) {
+                    if (err) reject(err);
+                    else resolve(JSON.parse(body).contacts);
+                });
+            })
+            .catch(reject)        
     })
 }
