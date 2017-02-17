@@ -90,8 +90,8 @@ module.exports.createEvent = function(data) {
                     lang: 'en-us',
                     usertz: "US/Pacific",
                     requestID: dataManager.generateId(),
-                    startDate: moment(data.startDate[0]).day("Sunday").hour(0).minute(0).format('YYYY-MM-DD'),
-                    endDate: moment(data.endDate[0]).day("Saturday").hour(23).minute(59).format('YYYY-MM-DD')
+                    startDate: moment().day("Sunday").hour(0).minute(0).format('YYYY-MM-DD'),
+                    endDate: moment().day("Saturday").hour(23).minute(59).format('YYYY-MM-DD')
                 });
                 
                 if (!data.guid) data.guid = dataManager.generateUuid();
