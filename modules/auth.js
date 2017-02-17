@@ -64,7 +64,7 @@ module.exports.login = function(serviceName, apple_id, password) {
         };
 
         // validate before login
-        refresh_validate(session, function(err, results) {
+        refresh_validate(session, function(err, results) { 
             if (err) return reject(err);
 
             // craft data for login request

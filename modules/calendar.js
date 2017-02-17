@@ -114,7 +114,7 @@ module.exports.createEvent = function(data) {
                     },
                     callback: function(err, resp, body) {
                         if(err) reject(err);
-                        else resolve(body.guid);
+                        else resolve(body);
                     }
                 })
             })
