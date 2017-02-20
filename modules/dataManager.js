@@ -64,7 +64,7 @@ module.exports.createClientState = function(data) {
 module.exports.generateId = function() {
   min = Math.ceil(10);
   max = Math.floor(100);
-  return Math.floor(Math.random() * (100 - 10)) + 10;
+  return Math.floor(Math.random() * (30 - 10)) + 10;
 }
 
 module.exports.generateUuid = function() {

@@ -15,12 +15,12 @@ if (!flags.login || !flags.password) {
 }
 
 co(function*() {
-    const contacts = yield instance.contacts.get({
-        login: flags.login, 
-        password: flags.password
-    });
+    // const contacts = yield instance.contacts.get({
+    //     login: flags.login, 
+    //     password: flags.password
+    // });
 
-    console.log("Got contacts: ", contacts.map(el => `${el.firstName} ${el.lastName}`));
+    // console.log("Got contacts: ", contacts.map(el => `${el.firstName} ${el.lastName}`));
 
     const result = yield instance.calendar.getList({
         login: flags.login, 
@@ -33,16 +33,18 @@ co(function*() {
 
     const collection = result.pop();
 
-    const guid = yield instance.calendar.createEvent({
+    const res = yield instance.calendar.createEvent({
         login: flags.login,
         password: flags.password,
-        startDate: [20170213, 2017, 2, 13, 1, 0, 0, 0],
-        endDate: [20170213, 2017, 2, 13, 2, 0, 0, 0],
-        title: "New custom event",
+        startDate: [20170213, 2017, 2, 20, 1, 0, 0],
+        endDate: [20170213, 2017, 2, 20, 2, 0, 0],
+        title: "New custom even22t",
         participants: [ "hatol@ciklum.com" ],
         type: collection.guid,
         ctag: collection.ctag
     });
+
+    const guid = res.guid;
 
     console.log(`Created event, guid: ${guid}`);
 
@@ -64,7 +66,7 @@ co(function*() {
         participants: [ "hatol@ciklum.com" ],
         type: collection.guid,
         ctag: collection.ctag,
-        guid: guid
+        guid
     });
 
     console.log('updated event');

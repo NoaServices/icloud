@@ -14,12 +14,11 @@
   "license": "MIT",
   "dependencies": {
     "args": "^2.3.0",
+    "co": "^4.6.0",
     "lodash": "^2.4.1",
     "moment": "^2.17.1",
     "node-uuid": "^1.4.1",
-    "request": "^2.45.0"
-  },
-  "devDependencies": {
-    "co": "^4.6.0"
+    "request": "^2.45.0",
+    "request-promise": "^4.1.1"
   }
 }
