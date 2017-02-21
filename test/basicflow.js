@@ -14,72 +14,89 @@ if (!flags.login || !flags.password) {
     process.exit(1);
 }
 
+const login = flags.login;
+const password = flags.password;
+
 co(function*() {
-    // const contacts = yield instance.contacts.get({
-    //     login: flags.login, 
-    //     password: flags.password
-    // });
+    const {cookie, dsid} = yield instance.auth.login(login, password);
 
-    // console.log("Got contacts: ", contacts.map(el => `${el.firstName} ${el.lastName}`));
+    let response = yield instance.contacts.get({login, password}, cookie, dsid);
 
-    const result = yield instance.calendar.getList({
-        login: flags.login, 
-        password: flags.password,
+    const contacts = JSON.parse(response.body).contacts;
+    console.log("Got contacts: ", contacts.map(el => `${el.firstName} ${el.lastName}`));
+
+    response = yield instance.calendar.getList({
+        login, 
+        password,
         startDate: "2017-01-29",
         endDate: "2017-03-04"
-    });
+    }, cookie, dsid);
+    
+    const calendarList = JSON.parse(response.body).Collection;
 
-    console.log('Got calendars list:', result.map(el => el.title));
+    console.log('Got calendars list:', calendarList.map(el => el.title));
 
-    const collection = result.pop();
+    const collection = calendarList.pop();
+    const type = collection.guid;
+    const ctag = collection.ctag;
 
-    const res = yield instance.calendar.createEvent({
-        login: flags.login,
-        password: flags.password,
+    response = yield instance.calendar.createEvent({
+        login,
+        password,
         startDate: [20170213, 2017, 2, 20, 1, 0, 0],
         endDate: [20170213, 2017, 2, 20, 2, 0, 0],
         title: "New custom even22t",
         participants: [ "hatol@ciklum.com" ],
-        type: collection.guid,
-        ctag: collection.ctag
-    });
+        type,
+        ctag
+    }, cookie, dsid);
 
-    const guid = res.guid;
+    const guid = response.body.guid;
 
     console.log(`Created event, guid: ${guid}`);
 
-    const events = yield instance.calendar.getEvents({
-        login: flags.login,
-        password: flags.password,
+    response = yield instance.calendar.getEvents({
+        login,
+        password,
         startDate: "2017-01-29",
         endDate: "2017-03-04"
-    });
+    }, cookie, dsid);
 
-    console.log('Got list of events: ', events.map(el => el.title));
+    const events = JSON.parse(response.body).Event;
+    
+    response = yield instance.calendar.getEventDetails({
+        login,
+        password,
+        type,
+        guid
+    }, cookie, dsid);
+    const details = JSON.parse(response.body).Event[0];
+
+    console.log('Got event details: ', details);
 
     yield  instance.calendar.updateEvent({
-        login: flags.login,
-        password: flags.password,
+        login,
+        password,
         startDate: [20170213, 2017, 2, 13, 1, 0, 0, 0],
         endDate: [20170213, 2017, 2, 13, 2, 0, 0, 0],
         title: "Now it becomes updated event",
         participants: [ "hatol@ciklum.com" ],
-        type: collection.guid,
-        ctag: collection.ctag,
+        type,
+        ctag,
         guid
-    });
+    }, cookie, dsid);
 
     console.log('updated event');
 
     yield instance.calendar.deleteEvent({
-        login: flags.login,
-        password: flags.password,
+        login,
+        password,
         startDate: [20170213, 2017, 2, 13, 1, 0, 0, 0],
         endDate: [20170213, 2017, 2, 13, 2, 0, 0, 0],
-        type: collection.guid,
-        ctag: collection.ctag,
-        guid: guid
-    });
+        type,
+        ctag,
+        guid
+    }, cookie, dsid);
 
     console.log('deleted event');
 

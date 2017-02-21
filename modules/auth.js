@@ -64,7 +64,7 @@ module.exports.getServiceUrl = function(serviceName) {
   return webservices[serviceName].url.split('//')[1].split(':')[0];
 }
 
-module.exports.login = function(serviceName, apple_id, password) {
+module.exports.login = function(apple_id, password) {
     return new Promise( (resolve, reject) => {        
         // store various request meta credentials 
         const session = auth.getBasicSession(apple_id, password);
