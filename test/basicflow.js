@@ -1,5 +1,5 @@
 const instance =  require('../index');
-const co = require('co');
+const Promise = require('bluebird');
 
 const args = require('args');
 
@@ -17,20 +17,29 @@ if (!flags.login || !flags.password) {
 const login = flags.login;
 const password = flags.password;
 
-co(function*() {
-    const {cookie, dsid} = yield instance.auth.login(login, password);
-
-    let response = yield instance.contacts.get({login, password}, cookie, dsid);
-
+Promise.coroutine(function*() {
+    /**
+     * Separate login to each service (issue, but its ok for now)
+     */
+    let {cookie, dsid, serviceUrl} = yield instance.auth.login('contacts', login, password);
+    let response = yield instance.contacts.get({login, password}, {cookie, dsid, serviceUrl});
     const contacts = JSON.parse(response.body).contacts;
     console.log("Got contacts: ", contacts.map(el => `${el.firstName} ${el.lastName}`));
+
+    /**
+     * Separate login to each service (issue, but its ok for now)
+     */
+    const reqData = yield instance.auth.login('calendar', login, password);   
+    cookie = reqData.cookie;
+    dsid = reqData.dsid;
+    serviceUrl = reqData.serviceUrl;
 
     response = yield instance.calendar.getList({
         login, 
         password,
         startDate: "2017-01-29",
         endDate: "2017-03-04"
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
     
     const calendarList = JSON.parse(response.body).Collection;
 
@@ -49,7 +58,7 @@ co(function*() {
         participants: [ "hatol@ciklum.com" ],
         type,
         ctag
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
 
     const guid = response.body.guid;
 
@@ -60,7 +69,7 @@ co(function*() {
         password,
         startDate: "2017-01-29",
         endDate: "2017-03-04"
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
 
     const events = JSON.parse(response.body).Event;
     
@@ -69,7 +78,7 @@ co(function*() {
         password,
         type,
         guid
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
     const details = JSON.parse(response.body).Event[0];
 
     console.log('Got event details: ', details);
@@ -84,7 +93,7 @@ co(function*() {
         type,
         ctag,
         guid
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
 
     console.log('updated event');
 
@@ -96,9 +105,8 @@ co(function*() {
         type,
         ctag,
         guid
-    }, cookie, dsid);
+    }, {cookie, dsid, serviceUrl});
 
     console.log('deleted event');
 
-})
-.catch(console.error);
+})()

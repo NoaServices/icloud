@@ -24,8 +24,6 @@ var req = request.defaults({
   json : true
 });
 
-let webservices = null;
-
 /*
 Queries the /validate endpoint and fetches two key values we need:
 1. "dsInfo" is a nested object which contains the "dsid" integer.
@@ -60,11 +58,7 @@ module.exports.getBasicSession = function(apple_id, password) {
   };
 }
 
-module.exports.getServiceUrl = function(serviceName) {
-  return webservices[serviceName].url.split('//')[1].split(':')[0];
-}
-
-module.exports.login = function(apple_id, password) {
+module.exports.login = function(serviceName, apple_id, password) {
     return new Promise( (resolve, reject) => {        
         // store various request meta credentials 
         const session = auth.getBasicSession(apple_id, password);
@@ -85,17 +79,15 @@ module.exports.login = function(apple_id, password) {
             }, function(err, resp, data) {
                 if (err || data.error) 
                     return reject("Invalid email/password combination.");
-
-                const authCookie = resp.headers['set-cookie'].join("; ");
-                webservices = data.webservices;
-
+                
                 // refresh after login
                 refresh_validate(session, (err, res) => {
                     if(err) reject(err);
                     else {
                         resolve({
-                            cookie: authCookie,
-                            dsid: session.params.dsid
+                            cookie: resp.headers['set-cookie'].join("; "),
+                            dsid: session.params.dsid,
+                            serviceUrl: data.webservices[serviceName].url.split('//')[1].split(':')[0]
                         });
                     }
                 });

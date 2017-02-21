@@ -1,7 +1,7 @@
 const request = require('request-promise');
 const _ = require('lodash');
 const moment = require('moment');
-const co = require('co');
+const Promise = require('bluebird');
 const auth = require('./auth');
 
 const dataManager = require('./dataManager');
@@ -43,144 +43,140 @@ function _getDefaultParams(data) {
 /**
  * Function to get calendar events
  */
-module.exports.getEvents = function(data, cookie, dsid) {
-  return co.wrap(function*() {
-    if (!cookie || !dsid) { 
+module.exports.getEvents = function(data, ctx) {
+  return Promise.coroutine(function*() {
+    if (!ctx.cookie || !ctx.dsid) { 
       const res = yield auth.login(data.login, data.password);
-      cookie = res.cookie;
-      dsid = res.dsid;
+      ctx.cookie = res.cookie;
+      ctx.dsid = res.dsid;
     }
-    return yield _getEvents(data, cookie, dsid);
+    return yield _getEvents(data, ctx);
   })();
 };
 
-function _getEvents(data, cookie, dsid) {
+function _getEvents(data, ctx) {
   const session = _.extend(auth.getBasicSession(data.login, data.password));
-  session.params.dsid = dsid;
-  const serviceUrl = auth.getServiceUrl('calendar');
+  session.params.dsid = ctx.dsid;
   
   return request.get({
-    url: `https://${serviceUrl}/ca/events`,
+    url: `https://${ctx.serviceUrl}/ca/events`,
     resolveWithFullResponse: true,
     qs : _.extend({}, session.params, _getDefaultParams(data)),
-    headers : _getDefaultHeaders(cookie, serviceUrl)
+    headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
 }
 
 /**
  * Get event details
  */
-module.exports.getEventDetails = function(data, cookie, dsid) {
-  return co.wrap(function*() {
-    if (!cookie || !dsid) { 
+module.exports.getEventDetails = function(data, ctx) {
+  return Promise.coroutine(function*() {
+    if (!ctx.cookie || !ctx.dsid) { 
       const res = yield auth.login(data.login, data.password);
-      cookie = res.cookie;
-      dsid = res.dsid;
+      ctx.cookie = res.cookie;
+      ctx.dsid = res.dsid;
     }
-    return yield _getEventDetails(data, cookie, dsid);
+    return yield _getEventDetails(data, ctx);
   })();
 };
 
-function _getEventDetails(data, cookie, dsid) {
+function _getEventDetails(data, ctx) {
   const session = _.extend(auth.getBasicSession(data.login, data.password));
-  session.params.dsid = dsid;
-  const serviceUrl = auth.getServiceUrl('calendar');
+  session.params.dsid = ctx.dsid;
   
   return request.get({
-    url: `https://${serviceUrl}/ca/eventdetail/${data.type}/${data.guid}`,
+    url: `https://${ctx.serviceUrl}/ca/eventdetail/${data.type}/${data.guid}`,
     resolveWithFullResponse: true,
     qs : _.extend({}, session.params, _getDefaultParams(data)),
-    headers : _getDefaultHeaders(cookie, serviceUrl)
+    headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
 }
 
 /**
  * Function that obtains the list of user calendars
  */
-module.exports.getList = function(data, cookie, dsid) {
-  return co.wrap(function*() {
-    if (!cookie || !dsid) {
+module.exports.getList = function(data, ctx) {
+  return Promise.coroutine(function*() {
+    if (!ctx.cookie || !ctx.dsid) {
       const res = yield auth.login(data.login, data.password);
-      cookie = res.cookie;
-      dsid = res.dsid;
+      ctx.cookie = res.cookie;
+      ctx.dsid = res.dsid;
     }
-    return yield _getList(data, cookie, dsid);
+    return yield _getList(data, ctx);
   })();
 }
 
-function _getList(data, cookie, dsid) {
+function _getList(data, ctx) {
   const session = _.extend(auth.getBasicSession(data.login, data.password));
-  session.params.dsid = dsid;
+  session.params.dsid = ctx.dsid;
 
-  const serviceUrl = auth.getServiceUrl('calendar');
   return request.get({
-    url: `https://${serviceUrl}/ca/startup`,
+    url: `https://${ctx.serviceUrl}/ca/startup`,
     resolveWithFullResponse: true,
     qs : _.extend({}, session.params, _getDefaultParams(data)),
-    headers : _getDefaultHeaders(cookie, serviceUrl)
+    headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
 }    
 
 /**
  * Function to create calendar event
  */
-module.exports.createEvent = function(data, cookie, dsid) {
-  return co.wrap(function*() {
-    if (!cookie || !dsid) {
+module.exports.createEvent = function(data, ctx) {
+  return Promise.coroutine(function*() {
+    if (!ctx.cookie || !ctx.dsid) {
       const res = yield auth.login(data.login, data.password);
-      cookie = res.cookie;
-      dsid = res.dsid;
+      ctx.cookie = res.cookie;
+      ctx.dsid = res.dsid;
     }
-    return yield _createEvent(data, cookie, dsid);
+    return yield _createEvent(data, ctx);
   })();  
 }
 
-function _createEvent(data, cookie, dsid) {  
+function _createEvent(data, ctx) {  
   const session = _.extend(auth.getBasicSession(data.login, data.password));
-  session.params.dsid = dsid;
+  session.params.dsid = ctx.dsid;
 
   if (!data.guid) data.guid = dataManager.generateUuid();
 
   const qs = _.extend({}, session.params, _getDefaultParams(data));
   qs.startDate = moment().day("Sunday").hour(0).minute(0).format('YYYY-MM-DD');
   qs.endDate = moment().day("Saturday").hour(23).minute(59).format('YYYY-MM-DD');
-  const serviceHost = auth.getServiceUrl('calendar');
-  
+ 
   return request({
     method: "POST",
     json: true,
     resolveWithFullResponse: true,
     body: dataManager.createDummyReqObj(data),
-    url: `https://${serviceHost}/ca/events/${data.type}/${data.guid}`,
+    url: `https://${ctx.serviceUrl}/ca/events/${data.type}/${data.guid}`,
     qs,
-    headers: _getDefaultHeaders(cookie, serviceHost)
+    headers: _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
 }
 
 /**
  * Function that updates calendar event
  */
-module.exports.updateEvent = function(data, cookie, dsid) {
-    return calendar.createEvent(data, cookie, dsid);
+module.exports.updateEvent = function(data, ctx) {
+    return calendar.createEvent(data, ctx);
 }
 
 /**
  * Function to delete calendar event
  */
-module.exports.deleteEvent = function(data, cookie, dsid) {
-  return co.wrap(function*() {
-    if (!cookie || !dsid) {
+module.exports.deleteEvent = function(data, ctx) {
+  return Promise.coroutine(function*() {
+    if (!ctx.cookie || !ctx.dsid) {
       const res = yield auth.login(data.login, data.password);
-      cookie = res.cookie;
-      dsid = res.dsid;
+      ctx.cookie = res.cookie;
+      ctx.dsid = res.dsid;
     }
-    return yield _deleteEvent(data, cookie, dsid);
+    return yield _deleteEvent(data, ctx);
   })();
 }
 
-function _deleteEvent(data, cookie, dsid) {
+function _deleteEvent(data, ctx) {
   const session = _.extend(auth.getBasicSession(data.login, data.password));
-  session.params.dsid = dsid;
+  session.params.dsid = ctx.dsid;
 
   const qs = _.extend({}, session.params, _getDefaultParams(data));
 
@@ -188,7 +184,6 @@ function _deleteEvent(data, cookie, dsid) {
   qs.endDate = moment(data.endDate[0]).day("Saturday").hour(23).minute(59).format('YYYY-MM-DD');
   qs.methodOverride = "DELETE";
 
-  const serviceUrl = auth.getServiceUrl('calendar');
   return request({
       method: "POST",
       json: true,
@@ -196,9 +191,9 @@ function _deleteEvent(data, cookie, dsid) {
           ClientState: dataManager.createClientState(data),
           Event: {}
       },
-      url: `https://${serviceUrl}/ca/events/${data.type}/${data.guid}`,
+      url: `https://${ctx.serviceUrl}/ca/events/${data.type}/${data.guid}`,
       qs,
       resolveWithFullResponse: true,
-      headers: _getDefaultHeaders(cookie, serviceUrl)
+      headers: _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
 }
