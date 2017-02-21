@@ -199,13 +199,6 @@ function _deleteEvent(data, cookie, dsid) {
       url: `https://${serviceUrl}/ca/events/${data.type}/${data.guid}`,
       qs,
       resolveWithFullResponse: true,
-      headers: {
-          Cookie: cookie,
-          Origin:"https://www.icloud.com",
-          host: serviceUrl,
-          Referer: 'https://www.icloud.com/applications/calendar/current/en-us/index.html',
-          Connection: 'keep-alive',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
-      }
+      headers: _getDefaultHeaders(cookie, serviceUrl)
   });
 }
