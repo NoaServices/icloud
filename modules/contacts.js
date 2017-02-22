@@ -8,18 +8,7 @@ const auth = require('./auth');
  *  Function to fetch contacts
  */ 
 module.exports.get = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) {
-      const res = yield auth.login('contacts', data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _getContacts(data, ctx);
-  })(); 
-}
-
-function _getContacts(data, ctx) {
-  const session = auth.getBasicSession(data.login, data.password);
+  const session = auth.getBasicSession();
   const host = ctx.serviceUrl;
   const qs = _.extend({}, session.params, {
     clientVersion: "5.1",

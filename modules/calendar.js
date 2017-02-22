@@ -44,18 +44,7 @@ function _getDefaultParams(data) {
  * Function to get calendar events
  */
 module.exports.getEvents = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) { 
-      const res = yield auth.login(data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _getEvents(data, ctx);
-  })();
-};
-
-function _getEvents(data, ctx) {
-  const session = _.extend(auth.getBasicSession(data.login, data.password));
+  const session = _.extend(auth.getBasicSession());
   session.params.dsid = ctx.dsid;
   
   return request.get({
@@ -64,24 +53,13 @@ function _getEvents(data, ctx) {
     qs : _.extend({}, session.params, _getDefaultParams(data)),
     headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
-}
+};
 
 /**
  * Get event details
  */
 module.exports.getEventDetails = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) { 
-      const res = yield auth.login(data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _getEventDetails(data, ctx);
-  })();
-};
-
-function _getEventDetails(data, ctx) {
-  const session = _.extend(auth.getBasicSession(data.login, data.password));
+  const session = _.extend(auth.getBasicSession());
   session.params.dsid = ctx.dsid;
   
   return request.get({
@@ -90,24 +68,13 @@ function _getEventDetails(data, ctx) {
     qs : _.extend({}, session.params, _getDefaultParams(data)),
     headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
-}
+};
 
 /**
  * Function that obtains the list of user calendars
  */
 module.exports.getList = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) {
-      const res = yield auth.login(data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _getList(data, ctx);
-  })();
-}
-
-function _getList(data, ctx) {
-  const session = _.extend(auth.getBasicSession(data.login, data.password));
+  const session = _.extend(auth.getBasicSession());
   session.params.dsid = ctx.dsid;
 
   return request.get({
@@ -116,24 +83,13 @@ function _getList(data, ctx) {
     qs : _.extend({}, session.params, _getDefaultParams(data)),
     headers : _getDefaultHeaders(ctx.cookie, ctx.serviceUrl)
   });
-}    
+};
 
 /**
  * Function to create calendar event
  */
 module.exports.createEvent = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) {
-      const res = yield auth.login(data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _createEvent(data, ctx);
-  })();  
-}
-
-function _createEvent(data, ctx) {  
-  const session = _.extend(auth.getBasicSession(data.login, data.password));
+  const session = _.extend(auth.getBasicSession());
   session.params.dsid = ctx.dsid;
 
   if (!data.guid) data.guid = dataManager.generateUuid();
@@ -164,18 +120,7 @@ module.exports.updateEvent = function(data, ctx) {
  * Function to delete calendar event
  */
 module.exports.deleteEvent = function(data, ctx) {
-  return Promise.coroutine(function*() {
-    if (!ctx.cookie || !ctx.dsid) {
-      const res = yield auth.login(data.login, data.password);
-      ctx.cookie = res.cookie;
-      ctx.dsid = res.dsid;
-    }
-    return yield _deleteEvent(data, ctx);
-  })();
-}
-
-function _deleteEvent(data, ctx) {
-  const session = _.extend(auth.getBasicSession(data.login, data.password));
+  const session = _.extend(auth.getBasicSession());
   session.params.dsid = ctx.dsid;
 
   const qs = _.extend({}, session.params, _getDefaultParams(data));

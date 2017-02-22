@@ -48,13 +48,12 @@ function refresh_validate(session, cb) {
 
 const auth = module.exports = {}
 
-module.exports.getBasicSession = function(apple_id, password) {
+module.exports.getBasicSession = function() {
   return { 
     params : {
       clientBuildNumber : '14FPlus30',
       clientId : dataManager.generateUuid()
-    },
-    user : { apple_id, password }
+    }
   };
 }
 
@@ -62,6 +61,8 @@ module.exports.login = function(serviceName, apple_id, password) {
     return new Promise( (resolve, reject) => {        
         // store various request meta credentials 
         const session = auth.getBasicSession(apple_id, password);
+        session.user = { apple_id, password };
+        
         // validate before login
         refresh_validate(session, function(err, results) { 
             if (err) return reject(err);
