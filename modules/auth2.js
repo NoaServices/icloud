@@ -37,6 +37,10 @@ module.exports = class Auth2 {
     this._refreshValidate = Promise.coroutine(this._refreshValidate.bind(this));
   }
 
+  /**
+   * Returns the first device found in the list
+   * @param {Object} session 
+   */
   *_getDevice(session) {
     const data = yield this.req.get({
       url: this.conf.listDevices,
@@ -45,6 +49,11 @@ module.exports = class Auth2 {
     return data.devices[0];
   }
 
+  /**
+   * Trigger a send of verification code to the device
+   * @param {Object} session 
+   * @param {Object} device 
+   */
   _sendVerificationCode(session, device) {
     return this.req.post({
       url: this.conf.sendVerificationCode,
@@ -53,6 +62,12 @@ module.exports = class Auth2 {
     });
   }
 
+  /**
+   * Validate the code and mark the device as trusted in order to persist the cookie
+   * @param {Object} session 
+   * @param {Object} device 
+   * @param {String} code 
+   */
   _validateVerificationCode(session, device, code) {
     device.verificationCode = code;
     device.trustBrowser = true;
@@ -114,6 +129,11 @@ module.exports = class Auth2 {
     };
   }
 
+  /**
+   * Authenticate the provided session
+   * @param {Object} session 
+   * @param {String} Optional trustCookie 
+   */
   *_authenticate(session, trustCookie) {
     // craft data for login request
     const data = _.clone(session.user);
@@ -140,6 +160,12 @@ module.exports = class Auth2 {
     return resp;
   }
 
+  /**
+   * Login the user to the service based on the page where user comes from
+   * @param {String} serviceName 
+   * @param {Object} credentials 
+   * @param {Object} params 
+   */
   *login(serviceName, credentials, { isSignup, code, trustCookie }) {
     try {
       yield this._logout();
